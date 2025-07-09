@@ -17,6 +17,9 @@ const Header = () => {
           <Link to="/" className={`text-sm font-medium transition-colors hover:text-primary ${isHomePage ? 'text-primary' : 'text-muted-foreground'}`}>
             Home
           </Link>
+          <Link to="/account" className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/account' ? 'text-primary' : 'text-muted-foreground'}`}>
+            My Projects
+          </Link>
           <Link to="/upload" className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/upload' ? 'text-primary' : 'text-muted-foreground'}`}>
             Upload Schema
           </Link>

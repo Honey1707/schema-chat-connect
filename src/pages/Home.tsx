@@ -21,16 +21,16 @@ const Home = () => {
             that understands your data and can answer complex queries in natural language.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/upload">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg">
-                Start Your Project
-              </Button>
-            </Link>
             <Link to="/login">
-              <Button variant="outline" size="lg" className="px-8 py-3 text-lg">
-                Sign In
+              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg">
+                Get Started
               </Button>
             </Link>
+            <Button variant="outline" size="lg" className="px-8 py-3 text-lg" asChild>
+              <Link to="/login">
+                Sign In
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
@@ -135,7 +135,7 @@ const Home = () => {
           <p className="text-xl text-muted-foreground mb-8">
             Join hundreds of companies already using AI-powered database chat agents to unlock insights from their data.
           </p>
-          <Link to="/upload">
+          <Link to="/login">
             <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-12 py-4 text-lg">
               Get Started Today
             </Button>

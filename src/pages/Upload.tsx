@@ -14,12 +14,8 @@ const UploadSchema = () => {
   const [formData, setFormData] = useState({
     projectName: "",
     dbType: "",
-    host: "",
-    port: "",
-    database: "",
-    username: "",
-    password: "",
     schema: null as File | null,
+    credentials: null as File | null,
     description: ""
   });
 
@@ -37,11 +33,11 @@ const UploadSchema = () => {
     });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fileType: 'schema' | 'credentials') => {
     const file = e.target.files?.[0] || null;
     setFormData({
       ...formData,
-      schema: file
+      [fileType]: file
     });
   };
 
@@ -162,84 +158,37 @@ const UploadSchema = () => {
                       </div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="host" className="text-sm font-medium">
-                          Database Host
-                        </Label>
-                        <Input
-                          id="host"
-                          name="host"
-                          placeholder="localhost or server IP"
-                          value={formData.host}
-                          onChange={handleInputChange}
-                          required
-                          className="bg-background border-input focus:border-primary"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="port" className="text-sm font-medium">
-                          Port
-                        </Label>
-                        <Input
-                          id="port"
-                          name="port"
-                          placeholder="5432"
-                          value={formData.port}
-                          onChange={handleInputChange}
-                          required
-                          className="bg-background border-input focus:border-primary"
-                        />
-                      </div>
-                    </div>
-
                     <div className="space-y-2">
-                      <Label htmlFor="database" className="text-sm font-medium">
-                        Database Name
+                      <Label htmlFor="credentials" className="text-sm font-medium">
+                        Database Credentials Document
                       </Label>
-                      <Input
-                        id="database"
-                        name="database"
-                        placeholder="your_database_name"
-                        value={formData.database}
-                        onChange={handleInputChange}
-                        required
-                        className="bg-background border-input focus:border-primary"
-                      />
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="username" className="text-sm font-medium">
-                          Username
-                        </Label>
+                      <div className="border-2 border-dashed border-input rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
+                        <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-4" />
+                        <div className="space-y-2">
+                          <Label htmlFor="credentials" className="cursor-pointer">
+                            <span className="text-primary hover:text-primary/80 font-medium">
+                              Upload credentials document
+                            </span>
+                            <span className="text-muted-foreground"> or drag and drop</span>
+                          </Label>
+                          <p className="text-sm text-muted-foreground">
+                            JSON, TXT, or document files containing database connection details (max 5MB)
+                          </p>
+                        </div>
                         <Input
-                          id="username"
-                          name="username"
-                          placeholder="database_user"
-                          value={formData.username}
-                          onChange={handleInputChange}
+                          id="credentials"
+                          type="file"
+                          onChange={(e) => handleFileChange(e, 'credentials')}
+                          accept=".json,.txt,.doc,.docx,.pdf"
+                          className="hidden"
                           required
-                          className="bg-background border-input focus:border-primary"
                         />
                       </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="password" className="text-sm font-medium">
-                          Password
-                        </Label>
-                        <Input
-                          id="password"
-                          name="password"
-                          type="password"
-                          placeholder="••••••••"
-                          value={formData.password}
-                          onChange={handleInputChange}
-                          required
-                          className="bg-background border-input focus:border-primary"
-                        />
-                      </div>
+                      {formData.credentials && (
+                        <p className="text-sm text-success mt-1">
+                          ✓ {formData.credentials.name} uploaded
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -262,7 +211,7 @@ const UploadSchema = () => {
                         <Input
                           id="schema"
                           type="file"
-                          onChange={handleFileChange}
+                          onChange={(e) => handleFileChange(e, 'schema')}
                           accept=".sql,.json,.txt,.md"
                           className="hidden"
                           required
