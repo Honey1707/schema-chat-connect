@@ -53,7 +53,15 @@ const UploadSchema = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent/20 to-secondary/30">
 
-      
+      {/* Logo Header */}
+      <header className="container mx-auto px-4 py-6 flex justify-center">
+        <img
+          src="/lovable-uploads/9a1ede34-4092-44c9-8fd9-f7f85c01e76e.png"
+          alt="DC Data Design"
+          className="h-10 w-auto"
+        />
+      </header>
+
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">

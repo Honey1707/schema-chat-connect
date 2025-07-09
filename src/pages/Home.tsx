@@ -7,7 +7,15 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent/20 to-secondary/30">
 
-      
+      {/* Logo Header */}
+      <header className="container mx-auto px-4 py-6 flex justify-center">
+        <img
+          src="/lovable-uploads/9a1ede34-4092-44c9-8fd9-f7f85c01e76e.png"
+          alt="DC Data Design"
+          className="h-10 w-auto"
+        />
+      </header>
+
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="max-w-4xl mx-auto">
