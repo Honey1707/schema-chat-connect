@@ -17,24 +17,36 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* DC Data Design Brand Colors */
+    --primary: 166 32% 42%; /* Greenish #D8E6E3 adapted */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
+    --secondary: 210 31% 87%; /* Bluish #DCE6ED */
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 40% 96.1%;
+    --muted: 210 31% 87%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
+    --accent: 166 32% 88%; /* Light green accent */
     --accent-foreground: 222.2 47.4% 11.2%;
+
+    --success: 166 32% 42%;
+    --success-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 166 32% 42%;
+
+    /* Custom gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(166 32% 88%), hsl(210 31% 87%));
+    --gradient-hero: linear-gradient(135deg, hsl(166 32% 95%), hsl(210 31% 95%));
+    
+    /* Shadows */
+    --shadow-elegant: 0 10px 30px -10px hsl(166 32% 42% / 0.2);
+    --shadow-card: 0 4px 20px hsl(166 32% 42% / 0.1);
 
     --radius: 0.5rem;
 
