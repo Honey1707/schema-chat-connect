@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import Header from "@/components/Header";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -25,6 +26,8 @@ const Login = () => {
     e.preventDefault();
     // TODO: Implement login logic
     console.log("Login attempt:", formData);
+    // Redirect to account page after login
+    navigate("/account");
   };
 
   return (
@@ -34,10 +37,13 @@ const Login = () => {
       <div className="container mx-auto px-4 py-16 flex items-center justify-center">
         <Card className="w-full max-w-md border-0 shadow-xl bg-card/90 backdrop-blur">
           <CardHeader className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <div className="text-2xl font-bold text-primary">DC</div>
-              <div className="text-xl font-light text-foreground">data design</div>
-            </div>
+            <Link to="/" className="flex items-center justify-center mb-4">
+              <img 
+                src="/lovable-uploads/9a1ede34-4092-44c9-8fd9-f7f85c01e76e.png" 
+                alt="DC Data Design" 
+                className="h-8 w-auto"
+              />
+            </Link>
             <CardTitle className="text-2xl font-bold text-foreground">Welcome Back</CardTitle>
             <CardDescription className="text-muted-foreground">
               Sign in to your account to access your database chat agents

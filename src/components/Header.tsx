@@ -8,30 +8,21 @@ const Header = () => {
   return (
     <header className="w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center space-x-2">
-          <div className="text-2xl font-bold text-primary">DC</div>
-          <div className="text-xl font-light text-foreground">data design</div>
+        <Link to="/" className="flex items-center">
+          <img 
+            src="/lovable-uploads/9a1ede34-4092-44c9-8fd9-f7f85c01e76e.png" 
+            alt="DC Data Design" 
+            className="h-8 w-auto"
+          />
         </Link>
         
-        <nav className="hidden md:flex items-center space-x-6">
-          <Link to="/" className={`text-sm font-medium transition-colors hover:text-primary ${isHomePage ? 'text-primary' : 'text-muted-foreground'}`}>
-            Home
-          </Link>
-          <Link to="/account" className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/account' ? 'text-primary' : 'text-muted-foreground'}`}>
-            My Projects
-          </Link>
-          <Link to="/upload" className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === '/upload' ? 'text-primary' : 'text-muted-foreground'}`}>
-            Upload Schema
-          </Link>
-        </nav>
-
         <div className="flex items-center space-x-3">
           <Link to="/login">
             <Button variant="outline" size="sm">
               Login
             </Button>
           </Link>
-          <Link to="/upload">
+          <Link to="/login">
             <Button size="sm" className="bg-primary hover:bg-primary/90">
               Get Started
             </Button>

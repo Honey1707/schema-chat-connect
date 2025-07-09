@@ -146,10 +146,13 @@ const Home = () => {
       {/* Footer */}
       <footer className="bg-card border-t border-border py-8">
         <div className="container mx-auto px-4 text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="text-xl font-bold text-primary">DC</div>
-            <div className="text-lg font-light text-foreground">data design</div>
-          </div>
+          <Link to="/" className="flex items-center justify-center space-x-2 mb-4">
+            <img 
+              src="/lovable-uploads/9a1ede34-4092-44c9-8fd9-f7f85c01e76e.png" 
+              alt="DC Data Design" 
+              className="h-6 w-auto"
+            />
+          </Link>
           <p className="text-muted-foreground">© 2024 DC Data Design. All rights reserved.</p>
         </div>
       </footer>

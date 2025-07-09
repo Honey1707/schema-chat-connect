@@ -106,12 +106,12 @@ const Account = () => {
                 Track the status of your database chat agent projects
               </p>
             </div>
-            <Link to="/upload">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Plus className="w-5 h-5 mr-2" />
-                New Project
-              </Button>
-            </Link>
+              <Link to="/upload">
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Add Project
+                </Button>
+              </Link>
           </div>
 
           {/* Stats Cards */}
