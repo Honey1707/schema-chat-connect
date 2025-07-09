@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { Plus, Clock, CheckCircle, MessageCircle, Database, Calendar } from "lucide-react";
-import Header from "@/components/Header";
 
 interface Project {
   id: string;
@@ -95,7 +94,6 @@ const Account = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent/20 to-secondary/30">
-      <Header />
       
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-6xl mx-auto">

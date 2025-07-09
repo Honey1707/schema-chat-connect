@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, Database, FileText, Shield } from "lucide-react";
-import Header from "@/components/Header";
 import { useToast } from "@/hooks/use-toast";
 
 const UploadSchema = () => {
@@ -53,7 +52,7 @@ const UploadSchema = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent/20 to-secondary/30">
-      <Header />
+
       
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">

@@ -5,8 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import Header from "@/components/Header";
-
 const Login = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
@@ -32,7 +30,6 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent/20 to-secondary/30">
-      <Header />
       
       <div className="container mx-auto px-4 py-16 flex items-center justify-center">
         <Card className="w-full max-w-md border-0 shadow-xl bg-card/90 backdrop-blur">

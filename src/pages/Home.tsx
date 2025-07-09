@@ -2,12 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { Database, MessageSquare, Cloud, Shield, Zap, Users } from "lucide-react";
-import Header from "@/components/Header";
 
 const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent/20 to-secondary/30">
-      <Header />
+
       
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
