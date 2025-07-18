@@ -33,11 +33,6 @@ const Home = () => {
                 Get Started
               </Button>
             </Link>
-            <Button variant="outline" size="lg" className="px-8 py-3 text-lg" asChild>
-              <Link to="/login">
-                Sign In
-              </Link>
-            </Button>
           </div>
         </div>
       </section>

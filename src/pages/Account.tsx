@@ -1,8 +1,10 @@
-import { useState } from "react";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
 import {
   Plus,
   Clock,
@@ -10,7 +12,9 @@ import {
   MessageCircle,
   Database,
   Calendar,
+  LogOut, // Added LogOut icon
 } from "lucide-react";
+import { Loading } from "@/components/ui/loading";
 
 interface Project {
   id: string;
@@ -22,42 +26,59 @@ interface Project {
 }
 
 const Account = () => {
-  // Mock data - replace with real data from API
-  const [projects] = useState<Project[]>([
-    {
-      id: "1",
-      name: "E-commerce Analytics Agent",
-      dbType: "PostgreSQL",
-      status: "completed",
-      submittedDate: "2024-01-15",
-      description:
-        "Chat agent for customer behavior analysis and sales insights",
-    },
-    {
-      id: "2",
-      name: "HR Management System",
-      dbType: "MySQL",
-      status: "in-progress",
-      submittedDate: "2024-01-20",
-      description: "Employee data queries and reporting system",
-    },
-    {
-      id: "3",
-      name: "Inventory Management",
-      dbType: "MongoDB",
-      status: "contact-needed",
-      submittedDate: "2024-01-22",
-      description: "Real-time inventory tracking and alerts",
-    },
-    {
-      id: "4",
-      name: "Financial Dashboard",
-      dbType: "SQL Server",
-      status: "pending",
-      submittedDate: "2024-01-25",
-      description: "Financial reporting and analysis chat interface",
-    },
-  ]);
+  const { id } = useParams();
+  const navigate = useNavigate(); // Added for logout navigation
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`http://localhost:8000/requests/`, {
+          withCredentials: true,
+          params: { userid: id },
+        });
+        setProjects(response.data.requests);
+      } catch (err) {
+        setError("Failed to fetch projects");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) fetchProjects();
+  }, [id]);
+
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/users/logout",
+        {},
+        { withCredentials: true, timeout: 5000 }
+      );
+      console.log("Logout response:", response.data);
+      // Clear cookies manually to ensure no stale cookies remain
+      document.cookie =
+        "access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;";
+      navigate("/login");
+    } catch (err) {
+      console.error("Logout error:", err);
+      // Clear cookies even if the request fails
+      document.cookie =
+        "access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;";
+      navigate("/login");
+    }
+  };
+
+  if (loading)
+    return (
+      <Loading message="Loading your projects..."/>
+    );
+  if (error)
+    return <p className="text-center mt-20 text-lg text-red-500">{error}</p>;
 
   const getStatusConfig = (status: Project["status"]) => {
     switch (status) {
@@ -102,8 +123,6 @@ const Account = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent/20 to-secondary/30">
-      {/* Logo Header */}
-
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-8">
@@ -112,22 +131,32 @@ const Account = () => {
                 <img
                   src="/lovable-uploads/9a1ede34-4092-44c9-8fd9-f7f85c01e76e.png"
                   alt="DC Data Design"
-                  className="h-20 w-auto"
+                  className="h-10 w-auto"
                 />
               </header>
-              <p className="text-xl text-muted-foreground">
-                Track the status of your database chat agent projects
-              </p>
             </div>
-            <Link to="/upload">
+            <div className="flex items-center gap-3">
               <Button
                 size="lg"
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                variant="outline"
+                onClick={handleLogout}
+                className="text-foreground hover:bg-secondary"
               >
-                <Plus className="w-5 h-5 mr-2" />
-                Add Project
+                <LogOut className="w-5 h-5 mr-2" />
+                Logout
               </Button>
-            </Link>
+              {projects.length > 0 && ( // Conditionally render Add Project button
+                <Link to={`/${id}/upload`}>
+                  <Button
+                    size="lg"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    <Plus className="w-5 h-5 mr-2" />
+                    Add Project
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
 
           {/* Stats Cards */}
@@ -272,7 +301,7 @@ const Account = () => {
                 <p className="text-muted-foreground mb-6">
                   Get started by creating your first database chat agent project
                 </p>
-                <Link to="/upload">
+                <Link to={`/${id}/upload`}>
                   <Button
                     size="lg"
                     className="bg-primary hover:bg-primary/90 text-primary-foreground"

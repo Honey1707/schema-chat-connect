@@ -13,13 +13,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 
-const Login = () => {
+const Signup = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false); // Loading state
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    confirmPassword: "",
   });
   const [error, setError] = useState(""); // State for error messages
 
@@ -28,7 +30,7 @@ const Login = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setError("");
+    setError(""); // Clear error on input change
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,29 +38,38 @@ const Login = () => {
     setError("");
     setLoading(true);
 
+    // Validate password matching
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords don't match!");
+      return;
+    }
+
     try {
+      // Send POST request to the /signup endpoint with credentials to allow cookies
       const response = await axios.post(
-        "http://localhost:8000/users/login",
+        "http://localhost:8000/users/signup",
         {
           email: formData.email,
           password: formData.password,
         },
         {
-          withCredentials: true,
+          withCredentials: true, // This allows cookies to be sent and received
         }
       );
 
-      console.log("Login successful");
+      // Redirect to account page
+      setLoading(false);
       navigate(`/${response.data.id}`);
     } catch (err) {
+      // Handle errors from the backend
       if (axios.isAxiosError(err) && err.response) {
-        setError(err.response.data.detail || "Login failed. Please try again.");
+        setError(
+          err.response.data.detail || "Signup failed. Please try again."
+        );
       } else {
         setError("An unexpected error occurred. Please try again.");
       }
-      console.error("Login error:", err);
-    } finally {
-      setLoading(false);
+      console.error("Signup error:", err);
     }
   };
 
@@ -75,10 +86,10 @@ const Login = () => {
               />
             </Link>
             <CardTitle className="text-2xl font-bold text-foreground">
-              Welcome Back
+              Create Your Account
             </CardTitle>
             <CardDescription className="text-muted-foreground">
-              Sign in to your account to access your database chat agents
+              Get started with your database chat agents
             </CardDescription>
           </CardHeader>
 
@@ -118,7 +129,7 @@ const Login = () => {
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
+                    placeholder="Create a password"
                     value={formData.password}
                     onChange={handleInputChange}
                     required
@@ -134,6 +145,66 @@ const Login = () => {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label
+                  htmlFor="confirmPassword"
+                  className="text-sm font-medium text-foreground"
+                >
+                  Confirm Password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Confirm your password"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full h-11 bg-background border-input focus:border-primary focus:ring-primary pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  id="terms"
+                  type="checkbox"
+                  required
+                  className="w-4 h-4 text-primary bg-background border-input rounded focus:ring-primary"
+                />
+                <Label
+                  htmlFor="terms"
+                  className="text-sm text-muted-foreground"
+                >
+                  I agree to the{" "}
+                  <Link
+                    to="/terms"
+                    className="text-primary hover:text-primary/80"
+                  >
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    to="/privacy"
+                    className="text-primary hover:text-primary/80"
+                  >
+                    Privacy Policy
+                  </Link>
+                </Label>
+              </div>
+
               <Button
                 type="submit"
                 disabled={loading} // Disable button while loading
@@ -147,31 +218,12 @@ const Login = () => {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Don't have an account?{" "}
+                Already have an account?{" "}
                 <Link
-                  to="/signup"
+                  to="/login"
                   className="text-primary hover:text-primary/80 font-medium"
                 >
-                  Sign up
-                </Link>
-              </p>
-            </div>
-
-            <div className="mt-6 pt-6 border-t border-border">
-              <p className="text-xs text-center text-muted-foreground">
-                By signing in, you agree to our{" "}
-                <Link
-                  to="/terms"
-                  className="text-primary hover:text-primary/80"
-                >
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link
-                  to="/privacy"
-                  className="text-primary hover:text-primary/80"
-                >
-                  Privacy Policy
+                  Sign in
                 </Link>
               </p>
             </div>
@@ -182,4 +234,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;

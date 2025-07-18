@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Database, FileText, Shield } from "lucide-react";
+import { Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const UploadSchema = () => {
@@ -13,7 +13,6 @@ const UploadSchema = () => {
   const [formData, setFormData] = useState({
     projectName: "",
     dbType: "",
-    schema: null as File | null,
     credentials: null as File | null,
     description: ""
   });
@@ -32,17 +31,16 @@ const UploadSchema = () => {
     });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fileType: 'schema' | 'credentials') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     setFormData({
       ...formData,
-      [fileType]: file
+      credentials: file
     });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement file upload and form submission
     console.log("Form submitted:", formData);
     toast({
       title: "Schema Uploaded Successfully!",
@@ -52,73 +50,17 @@ const UploadSchema = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent/20 to-secondary/30">
-
-      {/* Logo Header */}
-      <header className="container mx-auto px-4 py-6 flex justify-center">
-        <img
-          src="/lovable-uploads/9a1ede34-4092-44c9-8fd9-f7f85c01e76e.png"
-          alt="DC Data Design"
-          className="h-10 w-auto"
-        />
-      </header>
-
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-foreground mb-4">Upload Your Database Schema</h1>
             <p className="text-xl text-muted-foreground">
-              Provide your database details and schema to get started with your custom chat agent
+              Provide your database details to get started with your custom chat agent
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Info Cards */}
-            <div className="space-y-6">
-              <Card className="border-0 shadow-lg bg-card/80 backdrop-blur">
-                <CardHeader className="pb-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mb-2">
-                    <Shield className="w-5 h-5 text-primary" />
-                  </div>
-                  <CardTitle className="text-lg">Secure & Private</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>
-                    Your credentials are encrypted and stored securely. We never access your production data.
-                  </CardDescription>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-lg bg-card/80 backdrop-blur">
-                <CardHeader className="pb-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mb-2">
-                    <Database className="w-5 h-5 text-primary" />
-                  </div>
-                  <CardTitle className="text-lg">All Databases</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>
-                    Support for PostgreSQL, MySQL, MongoDB, SQL Server, and more database types.
-                  </CardDescription>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-lg bg-card/80 backdrop-blur">
-                <CardHeader className="pb-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mb-2">
-                    <FileText className="w-5 h-5 text-primary" />
-                  </div>
-                  <CardTitle className="text-lg">Quick Setup</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>
-                    Our team typically delivers your custom chat agent within 3-5 business days.
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Upload Form */}
-            <div className="lg:col-span-2">
+          <div className="flex justify-center">
+            <div className="w-full lg:w-2/3">
               <Card className="border-0 shadow-xl bg-card/90 backdrop-blur">
                 <CardHeader>
                   <CardTitle className="text-2xl text-foreground">Project Details</CardTitle>
@@ -154,12 +96,7 @@ const UploadSchema = () => {
                             <SelectValue placeholder="Select database type" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="postgresql">PostgreSQL</SelectItem>
                             <SelectItem value="mysql">MySQL</SelectItem>
-                            <SelectItem value="mongodb">MongoDB</SelectItem>
-                            <SelectItem value="sqlserver">SQL Server</SelectItem>
-                            <SelectItem value="oracle">Oracle</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -179,13 +116,13 @@ const UploadSchema = () => {
                             <span className="text-muted-foreground"> or drag and drop</span>
                           </Label>
                           <p className="text-sm text-muted-foreground">
-                            JSON, TXT, or document files containing database connection details (max 5MB)
+                            TXT or document files containing database connection details (max 5MB)
                           </p>
                         </div>
                         <Input
                           id="credentials"
                           type="file"
-                          onChange={(e) => handleFileChange(e, 'credentials')}
+                          onChange={handleFileChange}
                           accept=".json,.txt,.doc,.docx,.pdf"
                           className="hidden"
                           required
@@ -194,39 +131,6 @@ const UploadSchema = () => {
                       {formData.credentials && (
                         <p className="text-sm text-success mt-1">
                           ✓ {formData.credentials.name} uploaded
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="schema" className="text-sm font-medium">
-                        Schema File
-                      </Label>
-                      <div className="border-2 border-dashed border-input rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
-                        <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-4" />
-                        <div className="space-y-2">
-                          <Label htmlFor="schema" className="cursor-pointer">
-                            <span className="text-primary hover:text-primary/80 font-medium">
-                              Click to upload
-                            </span>
-                            <span className="text-muted-foreground"> or drag and drop</span>
-                          </Label>
-                          <p className="text-sm text-muted-foreground">
-                            SQL, JSON, or documentation files (max 10MB)
-                          </p>
-                        </div>
-                        <Input
-                          id="schema"
-                          type="file"
-                          onChange={(e) => handleFileChange(e, 'schema')}
-                          accept=".sql,.json,.txt,.md"
-                          className="hidden"
-                          required
-                        />
-                      </div>
-                      {formData.schema && (
-                        <p className="text-sm text-success mt-1">
-                          ✓ {formData.schema.name} uploaded
                         </p>
                       )}
                     </div>
