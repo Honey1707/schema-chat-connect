@@ -37,10 +37,11 @@ const Signup = () => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
+    
     // Validate password matching
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords don't match!");
+      setLoading(false);
       return;
     }
 
@@ -57,11 +58,8 @@ const Signup = () => {
         }
       );
 
-      // Redirect to account page
-      setLoading(false);
       navigate(`/${response.data.id}`);
     } catch (err) {
-      // Handle errors from the backend
       if (axios.isAxiosError(err) && err.response) {
         setError(
           err.response.data.detail || "Signup failed. Please try again."
@@ -70,6 +68,8 @@ const Signup = () => {
         setError("An unexpected error occurred. Please try again.");
       }
       console.error("Signup error:", err);
+    }finally {
+      setLoading(false);
     }
   };
 
