@@ -146,7 +146,7 @@ const Account = () => {
                 Logout
               </Button>
               {projects.length > 0 && ( // Conditionally render Add Project button
-                <Link to={`/${id}/upload`}>
+                <Link to={`/upload/${id}`}>
                   <Button
                     size="lg"
                     className="bg-primary hover:bg-primary/90 text-primary-foreground"
@@ -301,7 +301,7 @@ const Account = () => {
                 <p className="text-muted-foreground mb-6">
                   Get started by creating your first database chat agent project
                 </p>
-                <Link to={`/${id}/upload`}>
+                <Link to={`/upload/${id}`}>
                   <Button
                     size="lg"
                     className="bg-primary hover:bg-primary/90 text-primary-foreground"

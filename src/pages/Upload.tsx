@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,13 +8,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import axios from "axios";
+
+interface FormData {
+  projectName: string;
+  dbType: string;
+  credentials: File | null;
+  description: string;
+}
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const UploadSchema = () => {
+  const { id: userId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     projectName: "",
     dbType: "",
-    credentials: null as File | null,
+    credentials: null,
     description: ""
   });
 
@@ -33,20 +46,103 @@ const UploadSchema = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
+    
+    if (file && file.size > MAX_FILE_SIZE) {
+      toast({
+        title: "File too large",
+        description: "Maximum file size is 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setFormData({
       ...formData,
       credentials: file
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  if (!userId) {
+    toast({
+      title: "Error",
+      description: "User ID is missing",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  if (!formData.credentials) {
+    toast({
+      title: "Missing Credentials",
+      description: "Please upload a credentials document",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  try {
+    // Read the file content as base64
+    const fileReader = new FileReader();
+    const fileContent = await new Promise<string>((resolve, reject) => {
+      fileReader.onload = () => resolve(fileReader.result as string);
+      fileReader.onerror = reject;
+      fileReader.readAsDataURL(formData.credentials!);
+    });
+
+    const requestData = {
+      name: formData.projectName,
+      dbType: formData.dbType,
+      userid: userId,
+      status: "pending",
+      description: formData.description,
+      verified: false,
+      credentialDoc: fileContent.split(',')[1], // Remove the data URL prefix
+      submittedDate: new Date().toISOString()
+    };
+
+    console.log(requestData)
+
+    const response = await axios.post('http://localhost:8000/requests/', requestData, {
+      withCredentials: true,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
     toast({
       title: "Schema Uploaded Successfully!",
       description: "Our team will review your submission and contact you within 24 hours.",
     });
-  };
+
+    // Reset form
+    setFormData({
+      projectName: "",
+      dbType: "",
+      credentials: null,
+      description: ""
+    });
+
+    
+  } catch (error) {
+    console.error("Submission error:", error);
+    let errorMessage = "There was an error submitting your request. Please try again.";
+    
+    if (axios.isAxiosError(error)) {
+      errorMessage = error.response?.data?.detail || errorMessage;
+    }
+    
+    toast({
+      title: "Submission Failed",
+      description: errorMessage,
+      variant: "destructive",
+    });
+  } finally {
+    navigate(`/${userId}`) 
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent/20 to-secondary/30">
@@ -70,11 +166,11 @@ const UploadSchema = () => {
                 </CardHeader>
                 
                 <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                  <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="projectName" className="text-sm font-medium">
-                          Project Name
+                          Project Name *
                         </Label>
                         <Input
                           id="projectName"
@@ -89,14 +185,21 @@ const UploadSchema = () => {
 
                       <div className="space-y-2">
                         <Label htmlFor="dbType" className="text-sm font-medium">
-                          Database Type
+                          Database Type *
                         </Label>
-                        <Select onValueChange={handleSelectChange} required>
+                        <Select 
+                          onValueChange={handleSelectChange} 
+                          value={formData.dbType}
+                          required
+                        >
                           <SelectTrigger className="bg-background border-input focus:border-primary">
                             <SelectValue placeholder="Select database type" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="mysql">MySQL</SelectItem>
+                            <SelectItem value="postgresql">PostgreSQL</SelectItem>
+                            <SelectItem value="mongodb">MongoDB</SelectItem>
+                            <SelectItem value="sqlite">SQLite</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -104,40 +207,45 @@ const UploadSchema = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="credentials" className="text-sm font-medium">
-                        Database Credentials Document
+                        Database Credentials Document *
                       </Label>
                       <div className="border-2 border-dashed border-input rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
                         <Upload className="w-10 h-10 text-muted-foreground mx-auto mb-4" />
                         <div className="space-y-2">
                           <Label htmlFor="credentials" className="cursor-pointer">
                             <span className="text-primary hover:text-primary/80 font-medium">
-                              Upload credentials document
+                              {formData.credentials ? "Change file" : "Upload credentials document"}
                             </span>
                             <span className="text-muted-foreground"> or drag and drop</span>
                           </Label>
                           <p className="text-sm text-muted-foreground">
-                            TXT or document files containing database connection details (max 5MB)
+                            TXT, JSON, or document files (max 5MB)
                           </p>
                         </div>
                         <Input
                           id="credentials"
+                          name="credentials"
                           type="file"
                           onChange={handleFileChange}
                           accept=".json,.txt,.doc,.docx,.pdf"
-                          className="hidden"
+                          className="sr-only"
                           required
                         />
                       </div>
-                      {formData.credentials && (
+                      {formData.credentials ? (
                         <p className="text-sm text-success mt-1">
                           ✓ {formData.credentials.name} uploaded
+                        </p>
+                      ) : (
+                        <p className="text-sm text-destructive mt-1">
+                          * Required field
                         </p>
                       )}
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="description" className="text-sm font-medium">
-                        Project Description (Optional)
+                        Project Description
                       </Label>
                       <Textarea
                         id="description"
