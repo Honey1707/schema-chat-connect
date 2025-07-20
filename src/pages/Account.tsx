@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,8 @@ import {
   MessageCircle,
   Database,
   Calendar,
-  LogOut, // Added LogOut icon
+  LogOut,
+  XCircle,
 } from "lucide-react";
 import { Loading } from "@/components/ui/loading";
 
@@ -20,14 +21,14 @@ interface Project {
   id: string;
   name: string;
   dbType: string;
-  status: "pending" | "in-progress" | "completed" | "contact-needed";
+  status: "need-verification" | "processing" | "failed" | "verified";
   submittedDate: string;
   description: string;
 }
 
 const Account = () => {
   const { id } = useParams();
-  const navigate = useNavigate(); // Added for logout navigation
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -51,7 +52,6 @@ const Account = () => {
     if (id) fetchProjects();
   }, [id]);
 
-  // Logout handler
   const handleLogout = async () => {
     try {
       const response = await axios.post(
@@ -60,13 +60,11 @@ const Account = () => {
         { withCredentials: true, timeout: 5000 }
       );
       console.log("Logout response:", response.data);
-      // Clear cookies manually to ensure no stale cookies remain
       document.cookie =
         "access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;";
       navigate("/login");
     } catch (err) {
       console.error("Logout error:", err);
-      // Clear cookies even if the request fails
       document.cookie =
         "access_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;";
       navigate("/login");
@@ -74,41 +72,40 @@ const Account = () => {
   };
 
   if (loading)
-    return (
-      <Loading message="Loading your projects..."/>
-    );
+    return <Loading message="Loading your projects..." />;
   if (error)
     return <p className="text-center mt-20 text-lg text-red-500">{error}</p>;
 
   const getStatusConfig = (status: Project["status"]) => {
+    console.log(status)
     switch (status) {
-      case "completed":
+      case "verified":
         return {
-          label: "Completed",
+          label: "Verified",
           variant: "default" as const,
           icon: CheckCircle,
           color: "text-success",
         };
-      case "in-progress":
+      case "processing":
         return {
-          label: "In Progress",
+          label: "Processing",
           variant: "secondary" as const,
           icon: Clock,
           color: "text-primary",
         };
-      case "contact-needed":
+      case "need-verification":
         return {
-          label: "Will Contact You",
+          label: "Need Verification",
           variant: "outline" as const,
           icon: MessageCircle,
           color: "text-muted-foreground",
         };
-      case "pending":
+      case "failed":
         return {
-          label: "Pending Review",
-          variant: "outline" as const,
-          icon: Clock,
-          color: "text-muted-foreground",
+          label: "Failed",
+          variant: "destructive" as const,
+          icon: XCircle,
+          color: "text-destructive",
         };
     }
   };
@@ -129,7 +126,7 @@ const Account = () => {
             <div>
               <header className="container mx-auto px-4 py-6 flex justify-center">
                 <img
-                  src="/lovable-uploads/9a1ede34-4092-44c9-8fd9-f7f85c01e76e.png"
+                  src="/lovable-Uploads/9a1ede34-4092-44c9-8fd9-f7f85c01e76e.png"
                   alt="DC Data Design"
                   className="h-10 w-auto"
                 />
@@ -145,7 +142,7 @@ const Account = () => {
                 <LogOut className="w-5 h-5 mr-2" />
                 Logout
               </Button>
-              {projects.length > 0 && ( // Conditionally render Add Project button
+              {projects.length > 0 && (
                 <Link to={`/upload/${id}`}>
                   <Button
                     size="lg"
@@ -159,7 +156,6 @@ const Account = () => {
             </div>
           </div>
 
-          {/* Stats Cards */}
           <div className="grid md:grid-cols-4 gap-6 mb-8">
             <Card className="border-0 shadow-lg bg-card/80 backdrop-blur">
               <CardContent className="p-6">
@@ -182,10 +178,10 @@ const Account = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      Completed
+                      Verified
                     </p>
                     <p className="text-2xl font-bold text-success">
-                      {projects.filter((p) => p.status === "completed").length}
+                      {projects.filter((p) => p.status === "verified").length}
                     </p>
                   </div>
                   <CheckCircle className="w-8 h-8 text-success" />
@@ -198,13 +194,10 @@ const Account = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      In Progress
+                      Processing
                     </p>
                     <p className="text-2xl font-bold text-primary">
-                      {
-                        projects.filter((p) => p.status === "in-progress")
-                          .length
-                      }
+                      {projects.filter((p) => p.status === "processing").length}
                     </p>
                   </div>
                   <Clock className="w-8 h-8 text-primary" />
@@ -217,10 +210,10 @@ const Account = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
-                      Pending
+                      Need Verification
                     </p>
                     <p className="text-2xl font-bold text-muted-foreground">
-                      {projects.filter((p) => p.status === "pending").length}
+                      {projects.filter((p) => p.status === "need-verification").length}
                     </p>
                   </div>
                   <MessageCircle className="w-8 h-8 text-muted-foreground" />
@@ -229,7 +222,6 @@ const Account = () => {
             </Card>
           </div>
 
-          {/* Projects List */}
           <div className="space-y-6">
             {projects.map((project) => {
               const statusConfig = getStatusConfig(project.status);
@@ -275,7 +267,7 @@ const Account = () => {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {project.status === "completed" && (
+                        {project.status === "verified" && (
                           <Button variant="outline" size="sm">
                             View Agent
                           </Button>

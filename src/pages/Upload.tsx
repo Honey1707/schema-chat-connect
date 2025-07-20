@@ -96,7 +96,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       name: formData.projectName,
       dbType: formData.dbType,
       userid: userId,
-      status: "pending",
+      status: "processing",
       description: formData.description,
       verified: false,
       credentialDoc: fileContent.split(',')[1], // Remove the data URL prefix
