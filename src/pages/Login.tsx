@@ -11,17 +11,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import axios from "axios";
+import { handleLogin } from "@/api/loginService";
 
 const Login = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false); // Loading state
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [error, setError] = useState(""); // State for error messages
+  const [error, setError] = useState("");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -37,26 +37,10 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://localhost:8000/users/login",
-        {
-          email: formData.email,
-          password: formData.password,
-        },
-        {
-          withCredentials: true,
-        }
-      );
-
-      console.log("Login successful");
-      navigate(`/${response.data.id}`);
+      const userId = await handleLogin(formData.email, formData.password);
+      navigate(`/${userId}`);
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
-        setError(err.response.data.detail || "Login failed. Please try again.");
-      } else {
-        setError("An unexpected error occurred. Please try again.");
-      }
-      console.error("Login error:", err);
+      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
@@ -136,7 +120,7 @@ const Login = () => {
 
               <Button
                 type="submit"
-                disabled={loading} // Disable button while loading
+                disabled={loading}
                 className={`w-full h-11 ${
                   loading ? "opacity-60 cursor-not-allowed" : ""
                 } bg-primary hover:bg-primary/90 text-primary-foreground`}

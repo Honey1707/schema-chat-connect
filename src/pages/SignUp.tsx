@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import axios from "axios";
+import { handleSignup } from "@/api/signupService";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -23,22 +23,21 @@ const Signup = () => {
     password: "",
     confirmPassword: "",
   });
-  const [error, setError] = useState(""); // State for error messages
+  const [error, setError] = useState("");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setError(""); // Clear error on input change
+    setError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-    
-    // Validate password matching
+
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords don't match!");
       setLoading(false);
@@ -46,29 +45,11 @@ const Signup = () => {
     }
 
     try {
-      // Send POST request to the /signup endpoint with credentials to allow cookies
-      const response = await axios.post(
-        "http://localhost:8000/users/signup",
-        {
-          email: formData.email,
-          password: formData.password,
-        },
-        {
-          withCredentials: true, // This allows cookies to be sent and received
-        }
-      );
-
-      navigate(`/${response.data.id}`);
+      const userId = await handleSignup(formData.email, formData.password);
+      navigate(`/${userId}`);
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
-        setError(
-          err.response.data.detail || "Signup failed. Please try again."
-        );
-      } else {
-        setError("An unexpected error occurred. Please try again.");
-      }
-      console.error("Signup error:", err);
-    }finally {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred.");
+    } finally {
       setLoading(false);
     }
   };
@@ -80,7 +61,7 @@ const Signup = () => {
           <CardHeader className="text-center">
             <Link to="/" className="flex items-center justify-center mb-4">
               <img
-                src="/lovable-uploads/9a1ede34-4092-44c9-8fd9-f7f85c01e76e.png"
+                src="/lovable-Uploads/9a1ede34-4092-44c9-8fd9-f7f85c01e76e.png"
                 alt="DC Data Design"
                 className="h-8 w-auto"
               />
@@ -207,7 +188,7 @@ const Signup = () => {
 
               <Button
                 type="submit"
-                disabled={loading} // Disable button while loading
+                disabled={loading}
                 className={`w-full h-11 ${
                   loading ? "opacity-60 cursor-not-allowed" : ""
                 } bg-primary hover:bg-primary/90 text-primary-foreground`}

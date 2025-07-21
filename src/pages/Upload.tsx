@@ -7,142 +7,69 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import axios from "axios";
-
-interface FormData {
-  projectName: string;
-  dbType: string;
-  credentials: File | null;
-  description: string;
-}
+import { FormData } from "@/model/upload";
+import { handleUploadSchema } from "@/api/uploadService";
+import { toast } from "sonner";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 const UploadSchema = () => {
   const { id: userId } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [formData, setFormData] = useState<FormData>({
     projectName: "",
     dbType: "",
     credentials: null,
-    description: ""
+    description: "",
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSelectChange = (value: string) => {
     setFormData({
       ...formData,
-      dbType: value
+      dbType: value,
     });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
-    
+
     if (file && file.size > MAX_FILE_SIZE) {
-      toast({
-        title: "File too large",
-        description: "Maximum file size is 5MB",
-        variant: "destructive",
-      });
+      toast.error("File size exceeds 5MB limit. Please upload a smaller file.");
       return;
     }
-    
+
     setFormData({
       ...formData,
-      credentials: file
+      credentials: file,
     });
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  if (!userId) {
-    toast({
-      title: "Error",
-      description: "User ID is missing",
-      variant: "destructive",
-    });
-    return;
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  if (!formData.credentials) {
-    toast({
-      title: "Missing Credentials",
-      description: "Please upload a credentials document",
-      variant: "destructive",
-    });
-    return;
-  }
-
-  try {
-    // Read the file content as base64
-    const fileReader = new FileReader();
-    const fileContent = await new Promise<string>((resolve, reject) => {
-      fileReader.onload = () => resolve(fileReader.result as string);
-      fileReader.onerror = reject;
-      fileReader.readAsDataURL(formData.credentials!);
-    });
-
-    const requestData = {
-      name: formData.projectName,
-      dbType: formData.dbType,
-      userid: userId,
-      status: "processing",
-      description: formData.description,
-      verified: false,
-      credentialDoc: fileContent.split(',')[1], // Remove the data URL prefix
-      submittedDate: new Date().toISOString()
-    };
-
-    console.log(requestData)
-
-    const response = await axios.post('http://localhost:8000/requests/', requestData, {
-      withCredentials: true,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    toast({
-      title: "Schema Uploaded Successfully!",
-      description: "Our team will review your submission and contact you within 24 hours.",
-    });
-
-    // Reset form
-    setFormData({
-      projectName: "",
-      dbType: "",
-      credentials: null,
-      description: ""
-    });
-
-    
-  } catch (error) {
-    console.error("Submission error:", error);
-    let errorMessage = "There was an error submitting your request. Please try again.";
-    
-    if (axios.isAxiosError(error)) {
-      errorMessage = error.response?.data?.detail || errorMessage;
+    try {
+      if (userId) {
+        await handleUploadSchema(userId, formData);
+        // Reset form
+        setFormData({
+          projectName: "",
+          dbType: "",
+          credentials: null,
+          description: "",
+        });
+        navigate(`/${userId}`);
+      }
+    } catch (error) {
+      // Error handling is done in the service
     }
-    
-    toast({
-      title: "Submission Failed",
-      description: errorMessage,
-      variant: "destructive",
-    });
-  } finally {
-    navigate(`/${userId}`) 
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent/20 to-secondary/30">

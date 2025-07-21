@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -18,27 +17,15 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { Loading } from "@/components/ui/loading";
-
-interface Column {
-  column_name: string;
-  description: string;
-}
-
-interface TableInfo {
-  name: string;
-  description: string;
-  columns: Column[];
-  verified: boolean;
-}
-
-interface Project {
-  id: string;
-  name: string;
-  tables: TableInfo[];
-}
+import { Column, TableInfo, Project } from "@/model/verification";
+import {
+  fetchProjectData,
+  saveTableChanges,
+  verifyTable,
+} from "@/api/verificationService";
 
 const Verification = () => {
-  const { id , dbname } = useParams();
+  const { id, dbname } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [currentTableIndex, setCurrentTableIndex] = useState(0);
@@ -50,46 +37,43 @@ const Verification = () => {
   const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
-    const fetchProjectData = async () => {
+    const loadProjectData = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(
-          `http://localhost:8000/projects/${dbname}/verification`,
-          {
-            withCredentials: true,
-          }
-        );
-        setProject(response.data);
+        if (dbname) {
+          const projectData = await fetchProjectData(dbname);
+          setProject(projectData);
 
-        const unverifiedIndex = response.data.tables.findIndex(
-          (table: TableInfo) => !table.verified
-        );
-        const startIndex = unverifiedIndex >= 0 ? unverifiedIndex : 0;
-        setCurrentTableIndex(startIndex);
-
-        if (response.data.tables[startIndex]) {
-          setEditedTableDescription(
-            response.data.tables[startIndex].description
+          const unverifiedIndex = projectData.tables.findIndex(
+            (table: TableInfo) => !table.verified
           );
-          setEditedColumns([...response.data.tables[startIndex].columns]);
+          const startIndex = unverifiedIndex >= 0 ? unverifiedIndex : 0;
+          setCurrentTableIndex(startIndex);
+
+          if (projectData.tables[startIndex]) {
+            setEditedTableDescription(
+              projectData.tables[startIndex].description
+            );
+            setEditedColumns([...projectData.tables[startIndex].columns]);
+          }
         }
       } catch (err) {
-        setError("Failed to fetch project data");
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch project data"
+        );
       } finally {
         setLoading(false);
       }
     };
 
-    if (dbname) fetchProjectData();
+    loadProjectData();
   }, [dbname]);
 
-  // Effect to check if all tables are verified and navigate back
   useEffect(() => {
     if (project && project.tables.length > 0) {
-      const allTablesVerified = project.tables.every(table => table.verified);
-      
-      if (allTablesVerified) {
-        // Add a small delay to allow user to see the completion state
+      const allTablesVerified = project.tables.every((table) => table.verified);
+
+      if (allTablesVerified && id) {
         const timer = setTimeout(() => {
           navigate(`/${id}`);
         }, 1500);
@@ -97,7 +81,7 @@ const Verification = () => {
         return () => clearTimeout(timer);
       }
     }
-  }, [project, navigate]);
+  }, [project, navigate, id]);
 
   const currentTable = project?.tables[currentTableIndex];
   const unverifiedTablesCount =
@@ -122,20 +106,16 @@ const Verification = () => {
     setHasChanges(true);
   };
 
-  const saveChanges = async () => {
-    if (!currentTable || !project) return;
+  const handleSaveChanges = async () => {
+    if (!currentTable || !project || !dbname) return;
 
     setSaving(true);
     try {
-      await axios.put(
-        `http://localhost:8000/projects/${dbname}/tables/${currentTable.name}`,
-        {
-          description: editedTableDescription,
-          columns: editedColumns,
-        },
-        {
-          withCredentials: true,
-        }
+      await saveTableChanges(
+        dbname,
+        currentTable.name,
+        editedTableDescription,
+        editedColumns
       );
 
       const updatedTables = [...project.tables];
@@ -147,24 +127,18 @@ const Verification = () => {
       setProject({ ...project, tables: updatedTables });
       setHasChanges(false);
     } catch (err) {
-      console.error("Failed to save changes:", err);
+      setError(err instanceof Error ? err.message : "Failed to save changes");
     } finally {
       setSaving(false);
     }
   };
 
-  const verifyTable = async () => {
-    if (!currentTable || !project) return;
+  const handleVerifyTable = async () => {
+    if (!currentTable || !project || !dbname) return;
 
     setSaving(true);
     try {
-      await axios.put(
-        `http://localhost:8000/projects/${dbname}/tables/${currentTable.name}/verify`,
-        {},
-        {
-          withCredentials: true,
-        }
-      );
+      await verifyTable(dbname, currentTable.name);
 
       const updatedTables = [...project.tables];
       updatedTables[currentTableIndex] = {
@@ -186,7 +160,7 @@ const Verification = () => {
         setHasChanges(false);
       }
     } catch (err) {
-      console.error("Failed to verify table:", err);
+      setError(err instanceof Error ? err.message : "Failed to verify table");
     } finally {
       setSaving(false);
     }
@@ -215,14 +189,12 @@ const Verification = () => {
   if (!project || !currentTable)
     return <p className="text-center mt-20 text-lg">Project not found</p>;
 
-  // Check if all tables are verified
-  const allTablesVerified = project.tables.every(table => table.verified);
+  const allTablesVerified = project.tables.every((table) => table.verified);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent/10 to-secondary/20">
       <div className="container mx-auto px-4 py-6 sm:py-8">
         <div className="max-w-6xl mx-auto">
-          {/* Show completion message if all tables are verified */}
           {allTablesVerified && (
             <Card className="border-0 shadow-lg bg-green-50 dark:bg-green-900/20 mb-6 border-green-200 dark:border-green-800">
               <CardContent className="p-4 sm:p-6">
@@ -230,14 +202,15 @@ const Verification = () => {
                   <CheckCircle className="w-6 h-6" />
                   <div>
                     <h3 className="font-semibold">Verification Complete!</h3>
-                    <p className="text-sm">All tables have been verified. Redirecting...</p>
+                    <p className="text-sm">
+                      All tables have been verified. Redirecting...
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
             <div className="flex items-center gap-3">
               <Button
@@ -261,7 +234,7 @@ const Verification = () => {
             <div className="flex flex-wrap gap-2 w-full sm:w-auto">
               {hasChanges && (
                 <Button
-                  onClick={saveChanges}
+                  onClick={handleSaveChanges}
                   disabled={saving}
                   variant="outline"
                   size="sm"
@@ -272,7 +245,7 @@ const Verification = () => {
                 </Button>
               )}
               <Button
-                onClick={verifyTable}
+                onClick={handleVerifyTable}
                 disabled={saving || currentTable.verified}
                 size="sm"
                 className="flex items-center gap-2 bg-primary hover:bg-primary/90 flex-1 sm:flex-none"
@@ -283,7 +256,6 @@ const Verification = () => {
             </div>
           </div>
 
-          {/* Progress */}
           <Card className="border-0 shadow-sm bg-card mb-6 sm:mb-8">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -327,7 +299,6 @@ const Verification = () => {
           </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
-            {/* Table List Sidebar */}
             <div className="lg:col-span-1">
               <Card className="border-0 shadow-sm bg-card">
                 <CardHeader className="p-4 sm:p-6">
@@ -364,9 +335,7 @@ const Verification = () => {
               </Card>
             </div>
 
-            {/* Main Content */}
             <div className="lg:col-span-3 space-y-4 sm:space-y-6">
-              {/* Table Information */}
               <Card className="border-0 shadow-sm bg-card">
                 <CardHeader className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -415,7 +384,6 @@ const Verification = () => {
                 </CardContent>
               </Card>
 
-              {/* Columns */}
               <Card className="border-0 shadow-sm bg-card">
                 <CardHeader className="p-4 sm:p-6">
                   <CardTitle className="flex items-center gap-2 text-lg">
