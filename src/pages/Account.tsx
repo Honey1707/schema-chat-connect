@@ -5,7 +5,6 @@ import { useParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress"; // Assuming you have a Progress component
 import {
   Plus,
   Clock,
@@ -33,6 +32,101 @@ interface VerificationStatus {
   verified_tables: number;
   total_tables: number;
 }
+
+// Custom Pie Chart Component
+const PieChart = ({ percentage, size = 60 }: { percentage: number; size?: number }) => {
+  const radius = size / 2 - 4;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDasharray = circumference;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  
+  return (
+    <div className="relative flex items-center justify-center">
+      <svg width={size} height={size} className="transform -rotate-90">
+        {/* Background circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="currentColor"
+          strokeWidth="4"
+          fill="transparent"
+          className="text-muted/20"
+        />
+        {/* Progress circle */}
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="currentColor"
+          strokeWidth="4"
+          fill="transparent"
+          strokeDasharray={strokeDasharray}
+          strokeDashoffset={strokeDashoffset}
+          className="text-primary transition-all duration-500 ease-in-out"
+          strokeLinecap="round"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-sm font-bold text-foreground">
+          {percentage}%
+        </span>
+      </div>
+    </div>
+  );
+};
+
+// Mini circular progress for cards
+const MiniCircularProgress = ({ 
+  verified, 
+  total, 
+  size = 40,
+  className = "" 
+}: { 
+  verified: number; 
+  total: number; 
+  size?: number;
+  className?: string;
+}) => {
+  const percentage = total > 0 ? Math.round((verified / total) * 100) : 0;
+  const radius = size / 2 - 3;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDasharray = circumference;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  
+  return (
+    <div className={`relative flex items-center justify-center ${className}`}>
+      <svg width={size} height={size} className="transform -rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="currentColor"
+          strokeWidth="2.5"
+          fill="transparent"
+          className="text-muted/20"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="currentColor"
+          strokeWidth="2.5"
+          fill="transparent"
+          strokeDasharray={strokeDasharray}
+          strokeDashoffset={strokeDashoffset}
+          className="text-primary transition-all duration-700 ease-in-out"
+          strokeLinecap="round"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-xs font-medium text-foreground">
+          {verified}/{total}
+        </span>
+      </div>
+    </div>
+  );
+};
 
 const Account = () => {
   const { id } = useParams();
@@ -167,7 +261,7 @@ const Account = () => {
             <div>
               <header className="container mx-auto px-4 py-6 flex justify-center">
                 <img
-                  src="/lovable-Uploads/9a1ede34-4092-44c9-8fd9-f7f85c01e76e.png"
+                  src="/lovable-uploads/9a1ede34-4092-44c9-8fd9-f7f85c01e76e.png"
                   alt="DC Data Design"
                   className="h-10 w-auto"
                 />
@@ -292,21 +386,24 @@ const Account = () => {
                         </div>
 
                         {project.status === "need-verification" && (
-                          <div className="mb-3">
-                            <p className="text-sm text-muted-foreground">
+                          <div className="mb-4">
+                            <p className="text-sm font-medium text-muted-foreground mb-3">
                               Verification Progress
                             </p>
-                            <div className="flex items-center gap-2">
-                              <Progress
-                                value={getProgressPercentage(project.id)}
-                                className="w-1/2"
+                            <div className="flex items-center gap-4">
+                              <PieChart
+                                percentage={getProgressPercentage(project.id)}
+                                size={70}
                               />
-                              <span className="text-sm text-muted-foreground">
-                                {getProgressPercentage(project.id)}% (
-                                {progressData[project.id]?.verified_tables || 0}/
-                                {progressData[project.id]?.total_tables || 0}{" "}
-                                tables)
-                              </span>
+                              <div className="flex flex-col gap-1">
+                                <span className="text-sm font-medium text-foreground">
+                                  {progressData[project.id]?.verified_tables || 0} of{" "}
+                                  {progressData[project.id]?.total_tables || 0} tables verified
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {getProgressPercentage(project.id)}% complete
+                                </span>
+                              </div>
                             </div>
                           </div>
                         )}
@@ -327,17 +424,26 @@ const Account = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         {project.status === "need-verification" && (
-                          <Button variant="outline" size="sm">
-                            <Link to={`/${project.id}/${project.name}`}>
-                              Verify
-                            </Link>
-                          </Button>
+                          <>
+                            <MiniCircularProgress
+                              verified={progressData[project.id]?.verified_tables || 0}
+                              total={progressData[project.id]?.total_tables || 0}
+                              size={50}
+                              className="mr-2"
+                            />
+                            <Button variant="outline" size="sm">
+                              <Link to={`/${id}/${project.name}`}>
+                                Verify
+                              </Link>
+                            </Button>
+                          </>
                         )}
                         {project.status === "verified" && (
-                          <Button variant="outline" size="sm">
-                            Done Verification
+                          <Button variant="outline" size="sm" disabled>
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Completed
                           </Button>
                         )}
                       </div>

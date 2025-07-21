@@ -212,7 +212,7 @@ const Signup = () => {
                   loading ? "opacity-60 cursor-not-allowed" : ""
                 } bg-primary hover:bg-primary/90 text-primary-foreground`}
               >
-                {loading ? "Signing In..." : "Sign In"}
+                {loading ? "Signing up..." : "Sign Up"}
               </Button>
             </form>
 

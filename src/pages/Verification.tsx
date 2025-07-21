@@ -38,7 +38,7 @@ interface Project {
 }
 
 const Verification = () => {
-  const { dbname } = useParams();
+  const { id , dbname } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [currentTableIndex, setCurrentTableIndex] = useState(0);
@@ -91,7 +91,7 @@ const Verification = () => {
       if (allTablesVerified) {
         // Add a small delay to allow user to see the completion state
         const timer = setTimeout(() => {
-          navigate(-1);
+          navigate(`/${id}`);
         }, 1500);
 
         return () => clearTimeout(timer);
