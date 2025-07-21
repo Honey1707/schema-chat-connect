@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress"; // Assuming you have a Progress component
 import {
   Plus,
   Clock,
@@ -26,30 +27,62 @@ interface Project {
   description: string;
 }
 
+interface VerificationStatus {
+  request_id: string;
+  database_name: string;
+  verified_tables: number;
+  total_tables: number;
+}
+
 const Account = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [progressData, setProgressData] = useState<{
+    [key: string]: VerificationStatus;
+  }>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchProjects = async () => {
+    const fetchProjectsAndProgress = async () => {
       setLoading(true);
       try {
+        // Fetch projects
         const response = await axios.get(`http://localhost:8000/requests/`, {
           withCredentials: true,
           params: { userid: id },
         });
-        setProjects(response.data.requests);
+        const fetchedProjects = response.data.requests;
+        setProjects(fetchedProjects);
+
+        // Fetch progress for projects with "need-verification" status
+        const progressPromises = fetchedProjects
+          .filter((project: Project) => project.status === "need-verification")
+          .map((project: Project) =>
+            axios
+              .post(
+                `http://localhost:8000/requests/status`,
+                { name: project.name , id :project.id},
+                { withCredentials: true }
+              )
+              .then((res) => ({ [project.id]: res.data }))
+          );
+
+        const progressResponses = await Promise.all(progressPromises);
+        const progressMap = progressResponses.reduce(
+          (acc, curr) => ({ ...acc, ...curr }),
+          {}
+        );
+        setProgressData(progressMap);
       } catch (err) {
-        setError("Failed to fetch projects");
+        setError("Failed to fetch projects or progress");
       } finally {
         setLoading(false);
       }
     };
 
-    if (id) fetchProjects();
+    if (id) fetchProjectsAndProgress();
   }, [id]);
 
   const handleLogout = async () => {
@@ -71,13 +104,11 @@ const Account = () => {
     }
   };
 
-  if (loading)
-    return <Loading message="Loading your projects..." />;
+  if (loading) return <Loading message="Loading your projects..." />;
   if (error)
     return <p className="text-center mt-20 text-lg text-red-500">{error}</p>;
 
   const getStatusConfig = (status: Project["status"]) => {
-    console.log(status)
     switch (status) {
       case "verified":
         return {
@@ -116,6 +147,16 @@ const Account = () => {
       month: "long",
       day: "numeric",
     });
+  };
+
+  const getProgressPercentage = (projectId: string) => {
+    const progress = progressData[projectId];
+    if (progress && progress.total_tables > 0) {
+      return Math.round(
+        (progress.verified_tables / progress.total_tables) * 100
+      );
+    }
+    return 0;
   };
 
   return (
@@ -250,6 +291,26 @@ const Account = () => {
                           </Badge>
                         </div>
 
+                        {project.status === "need-verification" && (
+                          <div className="mb-3">
+                            <p className="text-sm text-muted-foreground">
+                              Verification Progress
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <Progress
+                                value={getProgressPercentage(project.id)}
+                                className="w-1/2"
+                              />
+                              <span className="text-sm text-muted-foreground">
+                                {getProgressPercentage(project.id)}% (
+                                {progressData[project.id]?.verified_tables || 0}/
+                                {progressData[project.id]?.total_tables || 0}{" "}
+                                tables)
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
                         <p className="text-muted-foreground mb-3">
                           {project.description}
                         </p>
@@ -267,14 +328,18 @@ const Account = () => {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {project.status === "verified" && (
+                        {project.status === "need-verification" && (
                           <Button variant="outline" size="sm">
-                            View Agent
+                            <Link to={`/${project.id}/${project.name}`}>
+                              Verify
+                            </Link>
                           </Button>
                         )}
-                        <Button variant="ghost" size="sm">
-                          Details
-                        </Button>
+                        {project.status === "verified" && (
+                          <Button variant="outline" size="sm">
+                            Done Verification
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>

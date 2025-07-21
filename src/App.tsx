@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ui/protectedRoutes";
 import { Loading } from "./components/ui/loading";
+import Verification from "./pages/Verification";
 
 // Lazy load pages
 const Home = lazy(() => import("./pages/Home"));
@@ -27,6 +28,11 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/:id/:dbname" element={
+                <ProtectedRoute>
+                  <Verification />
+                </ProtectedRoute>
+              } />
             <Route path="/signup" element={<Signup />} />
             <Route
               path="/upload/:id"
